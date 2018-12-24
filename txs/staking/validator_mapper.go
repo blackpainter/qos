@@ -24,15 +24,15 @@ var (
 	validatorByInActiveKey  = []byte{0x03} // 保存处于`inactive`状态的Validator. key: ValidatorInActiveTime + ValidatorAddress
 	validatorByVotePowerKey = []byte{0x04} // 按VotePower排序的Validator地址,不包含`pending`状态的Validator. key: VotePower + ValidatorAddress
 
-	lastValidateAddressSetKey = []byte("lastValidateAddressSetKey")
+	currentValidatorAddressKey = []byte("currentValidatorAddressKey")
 )
 
 func BuildValidatorStoreQueryPath() []byte {
 	return []byte(fmt.Sprintf("/store/%s/key", ValidatorMapperName))
 }
 
-func BuildLastValidatorAddressSetKey() []byte {
-	return lastValidateAddressSetKey
+func BuildCurrentValidatorAddressKey() []byte {
+	return currentValidatorAddressKey
 }
 
 func BuildValidatorKey(valAddress btypes.Address) []byte {
@@ -50,12 +50,11 @@ func BuildOwnerWithValidatorKey(ownerAddress btypes.Address) []byte {
 	return bz
 }
 
-func BuildInActiveValidatorKeyByTime(inActiveTime time.Time, valAddress btypes.Address) []byte {
+func BuildInactiveValidatorKeyByTime(inActiveTime time.Time, valAddress btypes.Address) []byte {
 	return BuildInActiveValidatorKey(uint64(inActiveTime.UTC().Unix()), valAddress)
 }
 
-func BuildInActiveValidatorKey(sec uint64, valAddress btypes.Address) []byte {
-
+func BuildInactiveValidatorKey(sec uint64, valAddress btypes.Address) []byte {
 	lenz := 1 + 8 + len(valAddress)
 	bz := make([]byte, lenz)
 
