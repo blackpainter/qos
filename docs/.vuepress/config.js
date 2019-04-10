@@ -2,7 +2,7 @@ module.exports = {
     title: "QOS",
     description: "Documentation for the QOS.",
     dest: "./dist/docs",
-    base: "/qos/",
+    base: "/qos/en/",
     markdown: {
         lineNumbers: true
     },
