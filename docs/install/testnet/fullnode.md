@@ -11,7 +11,7 @@ Then following [Init](#Init), [Config](#Config) and [Start](#Start) guides.
 
 ## Init
 
-First, initialize the node and create the necessary config files:
+First, initialize the node and create necessary config files:
 
 ```bash
 $ qosd init --moniker <your_custom_moniker>
@@ -19,11 +19,11 @@ $ qosd init --moniker <your_custom_moniker>
 
 `$HOME/.qosd/config` will be created to hold the config files
 
-## Config
+## Configure
 
 Different QOS testnet has different config files, visit [testnets repo](https://github.com/QOSGroup/qos-testnets) to find yours.
 
-For example, we join the latest testnet:
+For example, we are about to join the latest testnet:
 
 ### Replace `genesis.json`
 
@@ -34,9 +34,8 @@ $ curl https://raw.githubusercontent.com/QOSGroup/qos-testnets/master/latest/gen
 
 ### Edit `config.toml`
 
-Your node needs to know how to find peers. You'll need to add healthy seed nodes to `$HOME/.qosd/config/config.toml`.
+Your node needs to know how to find the peers. You'll need to add healthy seed nodes to `$HOME/.qosd/config/config.toml`. Find `seeds` option in it then set the value:
 
-Find `seeds` option then set the value:
 ```toml
 # Comma separated list of seed nodes to connect to
 seeds = "f1dbd6d0b931fe7f918a81e8248c21e2109caa97@47.105.156.172:26656"
@@ -50,7 +49,7 @@ Start the full node with this command:
 $ qosd start
 ```
 
-Check that everything is running smoothly:
+Check if everything is running smoothly:
 
 ```bash
 $ qoscli tendermint status --indent

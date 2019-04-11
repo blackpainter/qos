@@ -1,6 +1,6 @@
 # Running a Validator Node
 
-Validators are responsible for committing new blocks to the blockchain through consensus.
+Validators are responsible for committing new blocks to the blockchain according to consensus protocal.
 Before setting up your validator node, make sure you've already gone through the Full Node Setup guide and your node has finish the block synchronizing.
 
 ```bash
@@ -10,7 +10,7 @@ Make sure the value of `catching_up` is `false`, otherwise please wait.
 
 ## Get QOS Token
 
-To be a validator requires the operator to hold a certain amount of QOS testnet token, you can get some by using the [faucet](http://explorer.qoschain.info/freecoin/get).
+Becoming a validator requires the operator to hold a certain amount of QOS testnet token, you can get some by using the [faucet](http://explorer.qoschain.info/freecoin/get).
 
 1. Create account
 
@@ -21,7 +21,7 @@ $ qoscli keys add Peter
 Enter a passphrase for your key: 
 Repeat the passphrase: 
 ```
-The output looks like:
+The output would look like:
 ```bash
 NAME:   TYPE:   ADDRESS:                                                PUBKEY:
 Peter local   address1epvxmtxx99gy5xv7k7sl55994pehxgqt03va2s  D+pHqEJVjQMiRzl5PbL8FraVZqWqxrxcTF7akcCIDfo=
@@ -32,7 +32,7 @@ broom resource trash summer crop embrace stadium fish brief dolphin run decrease
 ```
 Remember `address1epvxmtxx99gy5xv7k7sl55994pehxgqt03va2s` is the `Address`，
 `D+pHqEJVjQMiRzl5PbL8FraVZqWqxrxcTF7akcCIDfo=` is the `PubKey`，
-`broom resource trash summer crop embrace stadium fish brief dolphin run decrease brief heart upgrade icon toe lift dawn regret dumb indoor drop glide` is `seed phrase`,
+`broom resource trash summer crop embrace stadium fish brief dolphin run decrease brief heart upgrade icon toe lift dawn regret dumb indoor drop glide` is the `seed phrase`,
 you can use these 24 phrases to recover this account.
 
 Run `qoscli keys --help` for more keybase tools information.
@@ -64,7 +64,7 @@ $ qoscli query account Peter --indent
   }
 }
 ```
-The `qos` holds the amount of tokens. 
+The `qos` indicates the amount of tokens in Peter's account. 
 
 ## Create Validator
 
@@ -74,8 +74,8 @@ The `qos` holds the amount of tokens.
 qoscli tx create-validator --owner Peter --name "Peter's node" --tokens 20000000 --description "hi, my eth address: xxxxxx"
 ```
 - `--owner` keybase name or address, eg, `Peter` or `address1epvxmtxx99gy5xv7k7sl55994pehxgqt03va2s`
-- `--name`  validator name, everything you like
-- `--tokens` amount of tokens deposit to the validator, less than the `qos` in owner's account
+- `--name`  validator name, anything you like
+- `--tokens` amount of tokens deposited to the validator, less than the `qos` in the owner's account
 - `--description` description info
 
 The output looks like:

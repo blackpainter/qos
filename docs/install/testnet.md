@@ -7,13 +7,13 @@ To join the QOS testnet, please follow the steps:
 
 ### Install QOS on Your Server
 
-See [install guide](http://docs.qoschain.info/qos/en/install/testnet/installation.html) to install QOS locally.
+See [Installation guide](http://docs.qoschain.info/qos/en/install/testnet/installation.html) to install QOS locally.
 
 ### Run a Full Node
 
-See [start a full node](http://docs.qoschain.info/qos/en/install/testnet/fullnode.html) to start a full node of the latest testnet.
+See [Starting a full node](http://docs.qoschain.info/qos/en/install/testnet/fullnode.html) to start a full node of the latest testnet.
 
 
 ### Upgrade to Validator Node
 
-See [be a validator](http://docs.qoschain.info/qos/en/install/testnet/validator.html) to become a validator node.
+See [Becoming a validator](http://docs.qoschain.info/qos/en/install/testnet/validator.html) to become a validator node.

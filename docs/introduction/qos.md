@@ -1,6 +1,6 @@
 # Welcome to QOS!
 
-qos公链，基于[qbase](https://www.github.com/QOSGroup/qbase)实现tendermint abci。
+QOS public chain, based on [qbase](https://www.github.com/QOSGroup/qbase) abci, which is a tendermint impletion。
 
 ### QOS Testnet
 To join the latest testnet, follow [the guide](../install/testnet.md).
