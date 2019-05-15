@@ -1,91 +1,100 @@
 package app
 
 import (
-	"encoding/json"
-	"errors"
-	"github.com/QOSGroup/qbase/server"
-	"github.com/QOSGroup/qbase/server/config"
-
-	"github.com/QOSGroup/qos/account"
+	"fmt"
+	bacc "github.com/QOSGroup/qbase/account"
+	"github.com/QOSGroup/qbase/context"
+	"github.com/QOSGroup/qos/module/approve"
+	"github.com/QOSGroup/qos/module/distribution"
+	"github.com/QOSGroup/qos/module/mint"
+	"github.com/QOSGroup/qos/module/qcp"
+	"github.com/QOSGroup/qos/module/qsc"
+	"github.com/QOSGroup/qos/module/stake"
 	"github.com/QOSGroup/qos/types"
-	"github.com/spf13/pflag"
-	"github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	tmtypes "github.com/tendermint/tendermint/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // QOS初始状态
 type GenesisState struct {
-	CAPubKey   crypto.PubKey         `json:"ca_pub_key"`
-	Accounts   []*account.QOSAccount `json:"accounts"`
-	Validators []types.Validator     `json:"validators"`
-
-	SPOConfig   types.SPOConfig   `json:"spo_config"`
-	StakeConfig types.StakeConfig `json:"stake_config"`
+	Accounts         []*types.QOSAccount       `json:"accounts"`
+	MintData         mint.GenesisState         `json:"mint"`
+	StakeData        stake.GenesisState        `json:"stake"`
+	QCPData          qcp.GenesisState          `json:"qcp"`
+	QSCData          qsc.GenesisState          `json:"qsc"`
+	ApproveData      approve.GenesisState      `json:"approve"`
+	DistributionData distribution.GenesisState `json:"distribution"`
 }
 
-func QOSAppInit() server.AppInit {
-	fsAppGenState := pflag.NewFlagSet("", pflag.ContinueOnError)
-
-	fsAppGenTx := pflag.NewFlagSet("", pflag.ContinueOnError)
-	fsAppGenTx.String(server.FlagName, "", "validator moniker, required")
-	fsAppGenTx.String(server.FlagClientHome, types.DefaultCLIHome,
-		"home directory for the client, used for key generation")
-	fsAppGenTx.Bool(server.FlagOWK, false, "overwrite the accounts created")
-
-	return server.AppInit{
-		FlagsAppGenState: fsAppGenState,
-		FlagsAppGenTx:    fsAppGenTx,
-		AppGenTx:         QOSAppGenTx,
-		AppGenState:      QOSAppGenState,
+func NewGenesisState(accounts []*types.QOSAccount,
+	mintData mint.GenesisState,
+	stakeData stake.GenesisState,
+	qcpData qcp.GenesisState,
+	qscData qsc.GenesisState,
+	approveData approve.GenesisState,
+	distributionData distribution.GenesisState,
+) GenesisState {
+	return GenesisState{
+		Accounts:         accounts,
+		MintData:         mintData,
+		StakeData:        stakeData,
+		QCPData:          qcpData,
+		QSCData:          qscData,
+		ApproveData:      approveData,
+		DistributionData: distributionData,
+	}
+}
+func NewDefaultGenesisState() GenesisState {
+	return GenesisState{
+		MintData:         mint.DefaultGenesisState(),
+		StakeData:        stake.DefaultGenesisState(),
+		DistributionData: distribution.DefaultGenesisState(),
 	}
 }
 
-type QOSGenTx struct {
-	Validator tmtypes.GenesisValidator `json:"validator"`
+func ValidGenesis(state GenesisState) error {
+	if err := validateAccounts(state.Accounts); err != nil {
+		return err
+	}
+
+	if err := stake.ValidateGenesis(state.Accounts, state.StakeData); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// Generate a genesis transaction
-func QOSAppGenTx(cdc *amino.Codec, pk crypto.PubKey, genTxConfig config.GenTx) (
-	appGenTx, cliPrint json.RawMessage, validator tmtypes.GenesisValidator, err error) {
+func InitGenesis(ctx context.Context, state GenesisState) []abci.ValidatorUpdate {
+	// accounts init should in the first
+	initAccounts(ctx, state.Accounts)
+	mint.InitGenesis(ctx, state.MintData)
+	stake.InitGenesis(ctx, state.StakeData)
+	qcp.InitGenesis(ctx, state.QCPData)
+	qsc.InitGenesis(ctx, state.QSCData)
+	approve.InitGenesis(ctx, state.ApproveData)
+	distribution.InitGenesis(ctx, state.DistributionData)
 
-	//JUST 占坑
-	validator.PubKey = ed25519.PubKeyEd25519{}
-	validator.Power = 1
-	validator.Name = "Use app_state.validators Instead"
+	return stake.GetUpdatedValidators(ctx, uint64(state.StakeData.Params.MaxValidatorCnt))
+}
 
-	simpleGenTx := QOSGenTx{tmtypes.GenesisValidator{
-		PubKey: pk,
-		Power:  10,
-	}}
-	bz, err := cdc.MarshalJSON(simpleGenTx)
-	if err != nil {
+func initAccounts(ctx context.Context, accounts []*types.QOSAccount) {
+	if len(accounts) == 0 {
 		return
 	}
-	appGenTx = json.RawMessage(bz)
-	return
+	accountMapper := ctx.Mapper(bacc.AccountMapperName).(*bacc.AccountMapper)
+	for _, acc := range accounts {
+		accountMapper.SetAccount(acc)
+	}
 }
 
-// app_state初始配置项生成
-func QOSAppGenState(cdc *amino.Codec, appGenTxs []json.RawMessage) (appState json.RawMessage, err error) {
-
-	if len(appGenTxs) != 1 {
-		err = errors.New("must provide a single genesis transaction")
-		return
+func validateAccounts(accs []*types.QOSAccount) error {
+	addrMap := make(map[string]bool, len(accs))
+	for i := 0; i < len(accs); i++ {
+		acc := accs[i]
+		strAddr := string(acc.AccountAddress)
+		if _, ok := addrMap[strAddr]; ok {
+			return fmt.Errorf("Duplicate account in genesis state: Address %v", acc.AccountAddress)
+		}
+		addrMap[strAddr] = true
 	}
-
-	var genTx QOSGenTx
-	err = cdc.UnmarshalJSON(appGenTxs[0], &genTx)
-	if err != nil {
-		return
-	}
-
-	appGenState := GenesisState{
-		SPOConfig:   types.DefaultSPOConfig(),
-		StakeConfig: types.DefaultStakeConfig(),
-	}
-
-	appState, _ = cdc.MarshalJSONIndent(appGenState, "", " ")
-	return
+	return nil
 }

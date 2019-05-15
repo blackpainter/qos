@@ -2,13 +2,15 @@ package main
 
 import (
 	bcli "github.com/QOSGroup/qbase/client"
+	"github.com/QOSGroup/qbase/client/config"
 	bctypes "github.com/QOSGroup/qbase/client/types"
 	"github.com/QOSGroup/qos/app"
-	"github.com/QOSGroup/qos/txs/approve/client"
-	"github.com/QOSGroup/qos/txs/qcp/client"
-	"github.com/QOSGroup/qos/txs/qsc/client"
-	"github.com/QOSGroup/qos/txs/staking/client"
-	"github.com/QOSGroup/qos/txs/transfer/client"
+	"github.com/QOSGroup/qos/module/approve/client"
+	"github.com/QOSGroup/qos/module/distribution/client"
+	"github.com/QOSGroup/qos/module/qcp/client"
+	"github.com/QOSGroup/qos/module/qsc/client"
+	"github.com/QOSGroup/qos/module/stake/client"
+	"github.com/QOSGroup/qos/module/transfer/client"
 	"github.com/QOSGroup/qos/types"
 	"github.com/QOSGroup/qos/version"
 	"github.com/spf13/cobra"
@@ -29,11 +31,15 @@ func main() {
 
 	rootCmd.AddCommand(bctypes.LineBreak)
 
+	// config command
+	rootCmd.AddCommand(config.Cmd(types.DefaultCLIHome))
+
 	// query commands
 	queryCommands := bcli.QueryCommand(cdc)
 	queryCommands.AddCommand(approve.QueryCommands(cdc)...)
 	queryCommands.AddCommand(qsc.QueryCommands(cdc)...)
 	queryCommands.AddCommand(staking.QueryCommands(cdc)...)
+	queryCommands.AddCommand(distribution.QueryCommands(cdc)...)
 
 	// txs commands
 	txsCommands := bcli.TxCommand()
@@ -45,7 +51,9 @@ func main() {
 	txsCommands.AddCommand(bctypes.LineBreak)
 	txsCommands.AddCommand(approve.TxCommands(cdc)...)
 	txsCommands.AddCommand(bctypes.LineBreak)
-	txsCommands.AddCommand(staking.TxCommands(cdc)...)
+	txsCommands.AddCommand(staking.TxValidatorCommands(cdc)...)
+	txsCommands.AddCommand(bctypes.LineBreak)
+	txsCommands.AddCommand(staking.TxDelegationCommands(cdc)...)
 
 	rootCmd.AddCommand(
 		bcli.KeysCommand(cdc),
